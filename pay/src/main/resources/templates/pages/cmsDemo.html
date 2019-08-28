@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>支付</title>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<style>
+body{background-color:#efeff4;}
+.main{padding:15px;height:100vh;}
+.mobile-box{padding:30px;background-color:#fff;}
+.mobile-top h2{font-size:18px;color:#000;}
+.mobile-content h3 img{margin-right:5px;}
+.mobile-content h3{font-size:14px;color:#b2b2b2;}
+.input-num{border-bottom: 1px solid #dcdcdc;margin-bottom: 5vh;padding-top: 5vh;}
+.input-num .tit{font-size:16px;color:#999;}
+.input-num .pay{position:relative;line-height: 50px;margin:10px 0;}
+.input-num .pay input{padding-left: 30px;line-height: 50px;border:none;outline:none;}
+.input-num .pay span.jinbi{font-weight:bold;color:#000;font-size:24px;position: absolute;left: 0;top: 0;}
+.pay-click a.nopay{cursor: pointer;background-color: #a3dea3;color: #fff;width: 100%;display: block;border-radius: 5px;line-height: 50px;font-size: 20px;}
+.pay-click a.pay{background-color:#1aac19;}
+input[type=number] {-moz-appearance:textfield;}  
+input[type=number]::-webkit-inner-spin-button,  
+input[type=number]::-webkit-outer-spin-button {-webkit-appearance: none;  margin: 0;}
+@media(min-width:720px){
+.mobile-box{width:720px;margin:0 auto;}
+}
+</style>
+</head>
+<body>
+<div class="main">
+    <div class="mobile-box">
+        <div class="mobile-top ">
+            <div class="back">
+                <i class="fa fa-angle-left fa-2x"></i>
+            </div>
+    
+            <h2 class="top-center color21">北京星恒教育科技有限公司</h2>
+    
+            <div class="back"></div>
+        </div>
+        <div class="mobile-content">
+            <h3 class="color21 font">
+                <img src="http://img1.52mamahome.com/hotel/homes.png" class="mr10" alt="">北京星恒教育科技有限公司</h3>
+            <div class="input-num">
+                <div class="tit">金额</div>
+                <div class="pay">
+                    <span class="jinbi">￥</span>
+                    <input type="number" class="w-100" id="totalFee">
+                </div>
+            </div>
+            <p class="text-center pay pay-click" id="goPay" onclick="pay()"><a class="nopay pay">支付</a></p>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="https://gw.alipayobjects.com/as/g/h5-lib/alipayjsapi/3.1.1/alipayjsapi.min.js"></script>
+<script>
+
+$("#totalFee").val(GetQueryString("totalFee"));
+
+// 获取url参数
+function GetQueryString(name){
+     var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+     var r = window.location.search.substr(1).match(reg);
+     if(r!=null)return  unescape(r[2]); return null;
+}
+
+if (navigator.userAgent.indexOf("AlipayClient") > 0) {
+    //window.location.href="http://www.xinghengedu.com/res/wxpay/demo.html";
+} else if (navigator.userAgent.indexOf("MicroMessenger") > 0) {
+    // window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxced9716263ff78b6&redirect_uri=http%3a%2f%2fwww.xinghengedu.com%2fres%2fwxpay%2fdemo.html&response_type=code&scope=snsapi_base#wechat_redirect";
+}else{
+    alert("请使用微信或者支付宝支付");
+}
+
+
+
+function pay() {
+    var rootUrl = "localhost";
+    var param = "?totalFee="+GetQueryString("totalFee")+"&cmsId="+GetQueryString("cmsId");
+        if (navigator.userAgent.indexOf("MicroMessenger") > 0) {
+        //var redirect_url = "http%3a%2f%2fwww.xinghengedu.com%2fres%2fwxpay%2fcodeDemo.html%3ftotalFee%3d"+totalFee;
+        //var wUrl = "/res/wxpay/codeDemo.html";
+        var wUrl = "/wxpay/order.htm";
+        var redirect_url = rootUrl + wUrl + param;
+        //alert(redirect_url);
+        var wxUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxced9716263ff78b6&redirect_uri="+encodeURIComponent(redirect_url)+"&response_type=code&scope=snsapi_base#wechat_redirect";
+        //alert("微信："+wxUrl);
+        var aurl="localhost/wxpay/order.htm"
+        window.location.href=wxUrl;
+        //window.location.href=aurl;
+        
+    }
+}
+function onBridgeReady(){
+        try{    
+           WeixinJSBridge.invoke(
+              'getBrandWCPayRequest', {
+                 "appId":"${data.appId}",     //公众号名称，由商户传入     
+                 "timeStamp":"${data.timeStamp}",         //时间戳，自1970年以来的秒数     
+                 "nonceStr":"${data.nonceStr}", //随机串     
+                 "package":"${data.pack}",     
+                 "signType":"MD5",         //微信签名方式：     
+                 "paySign":"${data.paySign}" //微信签名 
+              },
+              function(res){
+                  //alert(JSON.stringify(res));
+                  if(res.err_msg == "get_brand_wcpay_request:ok" ){
+                      //window.location.href = "http://www.xinghengedu.com/res/wxpay/success.html";
+                      alert("success");
+                  // 使用以上方式判断前端返回,微信团队郑重提示：
+                        //res.err_msg将在用户支付成功后返回ok，但并不保证它绝对可靠。
+                  } 
+               }); 
+           
+        }catch(e){
+            alert(e);
+        }    
+    }
+ 
+</script>
+</body>
+</html>
